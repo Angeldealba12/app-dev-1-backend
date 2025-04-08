@@ -46,34 +46,38 @@ async function getSingleTodo(req, res) {
     }
     res.json({ success: true, data: todo});
 }
-function addTodo(req, res) {
+async function addTodo(req, res) {
     const title = req.body.title;
     const completed = false;
-    const id = ++uniqueId; // Change to auto-incrementing value
     const userId = 1; // Change based on user logged in
-    // Be careful of injection attacks
+    // Validate user input before continuing
     if(title) {
-        const todo = {
+        const todo = new Todos({
             "title": title,
             "completed": completed,
-            "id": id,
             "userId": userId,
-        }
-        todos.push(todo);
-        res.json({success: true, data: todo});
+        });
+        const savedTodo = await todo.save();
+        res.json({success: true, data: savedTodo});
     } else {
-        res.status(500).json({success: false});
+        res.status(400).json({ success: false, message: 'Title is required' });
     }
 }
 
-function updateSingleTodo(req, res) {
-    const todo = todos.find((todo) => todo.id === +req.params.id); // + changes string to int
-    if(!todo) {
-        res.status(404).send("Not Found");
+async function updateSingleTodo(req, res) {
+    const id = req.params.id;
+    if (!isValidId(id)) {
+        return res.status(400).json({ success: false, message: 'Invalid ID format' });
     }
+    todo = {};
     todo.title = req.body.title;
     todo.completed = !!req.body.completed; // Converts string to boolean
-    res.json({success: true});
+    const updatedTodo = await Todos.findByIdAndUpdate(id, {$set: todo}, {new: true});
+    if(!updatedTodo) {
+        return res.status(404).json({success: false, message: 'Not found!'});
+    }
+    res.json({success: true, data: updatedTodo});
+
 }
 
 function deleteSingleTodo(req, res) {

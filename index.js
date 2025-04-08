@@ -1,8 +1,8 @@
 // Application dependencies
 const express = require('express');
 require('dotenv').config();
-// const dbConnect = require('./config/db.js');
-// dbConnect();
+const dbConnect = require('./config/db.js');
+dbConnect();
 
 // Application setup
 const app = express();
