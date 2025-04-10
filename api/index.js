@@ -21,9 +21,6 @@ app.use("/api/todos", todosRouter);
 const postsRouter = require("../routes/posts");
 app.use("/api/posts", postsRouter);
 
-app.get("/test-err", (req, res) => {
-    throw new Error("The sky is falling!");
-})
 app.use("*", fileNotFound);
 app.use(errorHandler);
 // Route handlers

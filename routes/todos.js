@@ -3,16 +3,6 @@ const express = require('express');
 const router = express.Router();
 const Todos = require('../models/Todos');
 
-let uniqueId = 1;
-const todos = [
-    {
-        "userId": 1, // based-on user logged in
-        "id": 1, // auto-incrementing value
-        "title": "Brush my teeth",
-        "completed": false
-    }
-];
-
 // route definitions
 // Get all todos
 router.get('/', getTodos);
