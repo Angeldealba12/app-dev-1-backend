@@ -7,10 +7,10 @@ todoForm.addEventListener('submit', function(event) {
     if(newToDo !== '') {
         toDo = {title: newToDo};
 
-        fetch('http://localhost:5000/api/todos', {
+        fetch('https://nodejs25.vercel.app/api/todos', {
             method: 'POST',
             body: JSON.stringify(toDo),
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+            headers: {'Content-Type': 'application/json; charset=UTF-8'}
         }).then(res => console.log(res.json()));
     }
 });
