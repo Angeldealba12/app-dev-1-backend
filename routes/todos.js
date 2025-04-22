@@ -2,7 +2,6 @@
 const express = require('express');
 const router = express.Router();
 const Todos = require('../models/Todos');
-const todos = [];
 // route definitions
 // Get all todos
 router.get('/', getTodos);
@@ -37,6 +36,8 @@ async function getSingleTodo(req, res) {
     }
     res.json({ success: true, data: todo});
 }
+
+
 async function addTodo(req, res) {
     const title = req.body.title;
     const completed = false;
@@ -49,7 +50,6 @@ async function addTodo(req, res) {
             "userId": userId,
         });
         const savedTodo = await todo.save();
-        todos.push(todo);
         res.json({success: true, data: savedTodo});
     } else {
         res.status(400).json({ success: false, message: 'Title is required' });
