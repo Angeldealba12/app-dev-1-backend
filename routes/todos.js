@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const Todos = require('../models/Todos');
-
+const todos = [];
 // route definitions
 // Get all todos
 router.get('/', getTodos);
@@ -14,7 +14,6 @@ router.post('/', addTodo);
 router.put('/:id', updateSingleTodo);
 // Delete a single to-do
 router.delete('/:id', deleteSingleTodo);
-
 // Route handlers
 async function getTodos (req, res) {
     try {
@@ -50,6 +49,7 @@ async function addTodo(req, res) {
             "userId": userId,
         });
         const savedTodo = await todo.save();
+        todos.push(todo);
         res.json({success: true, data: savedTodo});
     } else {
         res.status(400).json({ success: false, message: 'Title is required' });
@@ -72,25 +72,26 @@ async function updateSingleTodo(req, res) {
 
 }
 
-function deleteSingleTodo(req, res) {
-    const todo = todos.find((todo) => todo.id === +req.params.id); // + changes string to int
-    if(!todo) {
-        res.status(404).send("Not Found");
+async function deleteSingleTodo(req, res) {
+    const id = req.params.id;
+    try {
+        const deletedTodo = await Todos.findByIdAndDelete(id);
+        if (!deletedTodo) {
+            return res.status(404).json({ success: false, message: 'Todo not found' });
+        }
+        res.json({ success: true, message: 'Todo deleted successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Something went wrong' });
     }
-    const index = todos.indexOf(todo);
-    todos.splice(index, 1);
-    res.json({success: true});
 }
 
+
 function isValidId(id) {
-    if (
-        (typeof id === 'string' && /^[a-fA-F0-9]{24}$/.test(id)) ||  // 24-char hex string
+    return (typeof id === 'string' && /^[a-fA-F0-9]{24}$/.test(id)) ||  // 24-char hex string
         (id instanceof Uint8Array && id.length === 12) ||           // 12-byte Uint8Array
-        (Number.isInteger(id))                                      // Integer
-    ) {
-        return true;
-    }
-    return false;
+        (Number.isInteger(id));
+
 }
 
 module.exports = router;
