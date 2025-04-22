@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 
 const schema = new mongoose.Schema({
-    name: "Earth",
-    orderFromSun: 3,
-    hasRings: false
+    name: "string",
+    orderFromSun: 'number',
+    hasRings: 'boolean'
 });
 
 const Planets = mongoose.model('Planets', schema);

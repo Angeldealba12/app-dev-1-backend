@@ -17,8 +17,8 @@ app.use(express.urlencoded({ extended: false }));
 // Route definition
 app.use(express.static('public')); // This will display /public/index.html when the server loads
 
-// const todosRouter = require("../routes/todos");
-// app.use("/api/todos", todosRouter);
+const todosRouter = require("../routes/todos");
+app.use("/api/todos", todosRouter);
 
 // Creating a new route for planets
 const planetRouter = require("../routes/planets");
