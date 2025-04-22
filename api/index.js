@@ -1,5 +1,6 @@
 // Application dependencies
 const express = require('express');
+const cors = require('cors');
 require('dotenv').config();
 const dbConnect = require('../config/db.js');
 dbConnect();
@@ -7,6 +8,7 @@ dbConnect();
 // Application setup
 const app = express();
 const port = process.env.PORT || 5000;
+app.use(cors());
 
 // Body parser middleware
 app.use(express.json());
@@ -15,11 +17,12 @@ app.use(express.urlencoded({ extended: false }));
 // Route definition
 app.use(express.static('public')); // This will display /public/index.html when the server loads
 
-const todosRouter = require("../routes/todos");
-app.use("/api/todos", todosRouter);
+// const todosRouter = require("../routes/todos");
+// app.use("/api/todos", todosRouter);
 
-const postsRouter = require("../routes/posts");
-app.use("/api/posts", postsRouter);
+// Creating a new route for planets
+const planetRouter = require("../routes/planets");
+app.use("/api/planets", planetRouter);
 
 app.use("*", fileNotFound);
 app.use(errorHandler);

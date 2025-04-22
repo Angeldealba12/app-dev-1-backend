@@ -3,6 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <title>My Todos</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            margin-top: 1em;
+        }
+
+        th, td{
+            border: 1px solid #777777;
+            padding: 0.5em;
+        }
+    </style>
 <script defer src="bundle.js"></script></head>
 <body>
 <h1>My Todos</h1>
@@ -10,5 +21,18 @@
     <input type="text" name="title" id="title" placeholder="Title">
     <button type="Submit">Create</button>
 </form>
+<table>
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Completed</th>
+
+        </tr>
+
+    </thead>
+    <tbody id="todos">
+
+    </tbody>
+</table>
 </body>
 </html>

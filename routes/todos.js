@@ -25,6 +25,8 @@ async function getTodos (req, res) {
         res.status(500).json({success: false, message: 'Something went wrong!'});
     }
 }
+
+
 async function getSingleTodo(req, res) {
     const id = req.params.id;
     if (!isValidId(id)) {
