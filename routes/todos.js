@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const Todos = require('../models/Todos');
+
 // route definitions
 // Get all todos
 router.get('/', getTodos);
@@ -23,8 +24,6 @@ async function getTodos (req, res) {
         res.status(500).json({success: false, message: 'Something went wrong!'});
     }
 }
-
-
 async function getSingleTodo(req, res) {
     const id = req.params.id;
     if (!isValidId(id)) {
@@ -36,8 +35,6 @@ async function getSingleTodo(req, res) {
     }
     res.json({ success: true, data: todo});
 }
-
-
 async function addTodo(req, res) {
     const title = req.body.title;
     const completed = false;
@@ -72,26 +69,25 @@ async function updateSingleTodo(req, res) {
 
 }
 
-async function deleteSingleTodo(req, res) {
-    const id = req.params.id;
-    try {
-        const deletedTodo = await Todos.findByIdAndDelete(id);
-        if (!deletedTodo) {
-            return res.status(404).json({ success: false, message: 'Todo not found' });
-        }
-        res.json({ success: true, message: 'Todo deleted successfully' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: 'Something went wrong' });
+function deleteSingleTodo(req, res) {
+    const todo = todos.find((todo) => todo.id === +req.params.id); // + changes string to int
+    if(!todo) {
+        res.status(404).send("Not Found");
     }
+    const index = todos.indexOf(todo);
+    todos.splice(index, 1);
+    res.json({success: true});
 }
 
-
 function isValidId(id) {
-    return (typeof id === 'string' && /^[a-fA-F0-9]{24}$/.test(id)) ||  // 24-char hex string
+    if (
+        (typeof id === 'string' && /^[a-fA-F0-9]{24}$/.test(id)) ||  // 24-char hex string
         (id instanceof Uint8Array && id.length === 12) ||           // 12-byte Uint8Array
-        (Number.isInteger(id));
-
+        (Number.isInteger(id))                                      // Integer
+    ) {
+        return true;
+    }
+    return false;
 }
 
 module.exports = router;
