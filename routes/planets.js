@@ -7,6 +7,7 @@ const Todos = require("../models/Todos");
 // route definitions
 router.get('/', getPlanets);
 router.post('/', addPlanet);
+router.put('/:id', updatePlanet);
 
 // Route handlers
 async function getPlanets (req, res) {
@@ -20,17 +21,46 @@ async function getPlanets (req, res) {
 }
 
 async function addPlanet(req, res) {
-    const result = await validatePlanetInput(req.body);
+    try {
+        const result = await validatePlanetInput(req.body);
 
-    // Validate user input before continuing
-    if(!result.valid) {
-        return res.status(400).json({success: false, message: result.error});
+        // Validate user input before continuing
+        if (!result.valid) {
+            return res.status(400).json({success: false, message: result.error});
+        }
+
+        const planet = new Planets(result.data);
+        const savedPlanet = await planet.save();
+        res.json({success: true, data: savedPlanet});
+    } catch(error) {
+        console.error(error);
+        return res.status(500).json({success: false, error: "Unknown error occurred"});
     }
+}
 
+async function updatePlanet (req, res) {
+    const id = req.params.id;
+    if(!isValidId(id)) {
+        return res.status(400).json({success: false, message: 'Invalid id or not valid'});
+    }
+    try {
+        const result = await validatePlanetInput(req.body, id);
 
-    const planet = new Planets(result.data);
-    const savedPlanet = await planet.save();
-    res.json({success: true, data: savedPlanet});
+        // Validate user input before continuing
+        if (!result.valid) {
+            return res.status(400).json({success: false, message: result.error});
+        }
+
+        const updatedPlanet = await Planets.findByIdAndUpdate(id, {$set: result.data}, {new: true});
+        console.log(updatedPlanet);
+        if (!updatedPlanet) {
+            return res.status(404).json({success: false, message: 'Planet not found'});
+        }
+        res.json({success: true, data: updatedPlanet});
+    } catch(error) {
+        console.error(error);
+        return res.status(500).json({success: false, error: "Unknown error occurred"});
+    }
 }
 
 async function validatePlanetInput(input, existingPlanetId = null) {
@@ -68,6 +98,16 @@ async function validatePlanetInput(input, existingPlanetId = null) {
     if(existing) {
         return {valid: false, error: `Planet ${existing.name} with orderFromSun ${orderFromSun} already exists.`};
     }
+
+    // Validate hasRings
+    if(hasRings === null) {
+        hasRings = false;
+    }
+    if(typeof hasRings === 'string') {
+        hasRings = hasRings.trim().toLowerCase() === 'true' ? true : false;
+    }
+
+
 
     return { valid: true, data: {name, orderFromSun, hasRings}};
 }
