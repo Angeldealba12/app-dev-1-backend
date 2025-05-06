@@ -2,7 +2,7 @@ import './css/style.css';
 
 let apiUrl = '';
 if(location.protocol === 'https:') {
-    apiUrl = 'https://app-dev-1-backend.vercel.app/api/todos';
+    apiUrl = 'https://nodejs25.vercel.app/api/todos/';
 } else {
     apiUrl = 'http://localhost:5000/api/todos/'
 }

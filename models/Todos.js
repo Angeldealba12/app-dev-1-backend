@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 
-const conn = mongoose.createConnection(process.env.MONGODB_URI_TODOS);
+const conn = mongoose.createConnection(process.env.MONGODB_URI_GUIDES);
 
 const schema = new mongoose.Schema({
-    userId: 'number',
-    title: 'string',
-    completed: 'boolean',
+    name: 'string',
+    orderFromSun: 'number',
+    hasRings: 'boolean',
 });
 
-module.exports = conn.model('Todos', schema);
+module.exports = conn.model('Planets', schema);

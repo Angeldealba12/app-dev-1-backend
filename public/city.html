@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Location, Weather, and Restaurants</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
+<!-- Form Section -->
+<div class="w-full max-w-md mb-8">
+  <h2 class="text-2xl font-bold text-gray-800 mb-4">Enter Location</h2>
+  <form id="locationForm" class="flex space-x-2">
+    <input
+            id="locationInput"
+            type="text"
+            placeholder="e.g., Golden Gate Bridge"
+            class="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+    <button
+            class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+    >
+      Search
+    </button>
+  </form>
+</div>
+
+<!-- Results Section -->
+<div id="results" class="w-full max-w-4xl hidden">
+  <h1 id="locationName" class="text-3xl font-bold text-gray-800 mb-6"></h1>
+
+  <div class="grid grid-cols-3 gap-4 mb-6">
+    <!-- Map -->
+    <div id="mapCard" class="col-span-2">
+      <div id="map" class="h-96"></div>
+    </div>
+
+    <!-- Weather Card -->
+    <div id="weatherCard">
+      <h2 class="text-2xl font-bold text-gray-800 mb-4">Current Weather</h2>
+      <div class="flex items-center space-x-4 bg-white rounded-lg shadow-lg p-6 mb-6 ">
+        <div>
+          <p class="text-lg">
+            <span class="font-semibold">Condition:</span> <span id="weatherDesc"></span>
+          </p>
+          <p class="text-lg">
+            <span class="font-semibold">Temperature:</span> <span id="currentTemp"></span>°F
+          </p>
+          <p class="text-lg">
+            <span class="font-semibold">Feels Like:</span> <span id="feelsLike"></span>°F
+          </p>
+          <p class="text-lg">
+            <span class="font-semibold">Humidity:</span> <span id="humidity"></span>%
+          </p>
+          <p class="text-lg">
+            <span class="font-semibold">Wind:</span> <span id="windSpeed"></span> mph
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="restaurantsSection">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4">Nearby Restaurants</h2>
+    <div id="restaurantsDiv" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6"></div>
+  </div>
+
+
+
+
+</div>
+
+
+<script>
+  let apiUrl = '';
+  if(location.protocol === 'https:') {
+    apiUrl = 'https://nodejs25.vercel.app/api/cityExplorer/';
+  } else {
+    apiUrl = 'http://localhost:5000/api/cityExplorer/'
+  }
+  const locationInput = document.getElementById('locationInput');
+  const locationForm = document.getElementById('locationForm');
+  const results = document.getElementById('results');
+  const locationName = document.getElementById('locationName');
+  const mapCard = document.getElementById('mapCard');
+  const weatherDesc = document.getElementById('weatherDesc');
+  const currentTemp = document.getElementById('currentTemp');
+  const feelsLike = document.getElementById('feelsLike');
+  const humidityTxt = document.getElementById('humidity');
+  const windSpeed = document.getElementById('windSpeed');
+  const restaurantsDiv = document.getElementById('restaurantsDiv');
+
+
+  locationForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    results.classList.add('hidden');
+    const locationFromUser = locationInput.value.trim();
+    if(!locationFromUser) {
+      results.innerHTML = '<p class="text-red-500">Location is required.</p>';
+      results.classList.remove('hidden');
+      return; // If the location is empty, don't continue
+    }
+    try {
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({location: locationFromUser}),
+      });
+      const data = await response.json();
+      // console.log(data.location);
+      const {lat, lon, display_name} = data.location;
+
+      // Display Location Name
+      const displayName = display_name.split(',');
+      const keepIndexes = new Set([0, displayName.length - 3, displayName.length - 1]);
+      const result = displayName.filter((_, index) => keepIndexes.has(index));
+      locationName.textContent = result.join(',');
+
+      // Display Map
+      mapCard.innerHTML = '<div id="map" class="h-96"></div>';
+      const map = L.map('map').setView([37.7749, -122.4194], 10); // Default: San Francisco
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+      // Adjust map to proper location
+      L.marker([lat, lon]).addTo(map);
+      map.setView([lat, lon], 14);
+
+      // Display Weather
+      const {weather, current_temp, feels_like, humidity, wind_speed} = data.weather;
+      weatherDesc.textContent = weather;
+      currentTemp.textContent = current_temp;
+      feelsLike.textContent = feels_like;
+      humidityTxt.textContent = humidity;
+      windSpeed.textContent = wind_speed;
+
+      // Display Nearby Restaurants
+      restaurantsDiv.innerHTML = '';
+      const restaurants = data.restaurants;
+      restaurants.forEach((restaurant) => {
+        const card = `
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <img src="${restaurant.image_url}" alt="${restaurant.name}"
+                    class="w-full h-48 object-cover">
+                    <div class="p-4">
+                        <h3 class="text-lg font-semibold text-gray-800">${restaurant.name}</h3>
+                        <p class="text-gray-600">${restaurant.price || 'N/A'}</p>
+                        <p class="text-gray-600">${restaurant.address}</p>
+                        <p class="text-gray-600">${restaurant.city}, ${restaurant.state} ${restaurant.zip}</p>
+                        <p class="text-gray-600">${restaurant.phone}</p>
+                        <a href="${restaurant.url}" target="_blank" class="text-blue-500 hover:underline">Visit Website</a>
+                    </div>
+                </div>
+            `;
+        restaurantsDiv.insertAdjacentHTML('beforeend', card);
+      });
+
+    } catch (error) {
+      console.error(error);
+      results.innerHTML = '<p class="text-red-500">Error fetching data. Refresh the browser and try again.</p>';
+    }
+    results.classList.remove('hidden');
+  });
+</script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</body>
+</html>

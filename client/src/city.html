@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Location, Weather, and Restaurants</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
+<!-- Form Section -->
+<div class="w-full max-w-md mb-8">
+  <h2 class="text-2xl font-bold text-gray-800 mb-4">Enter Location</h2>
+  <div class="flex space-x-2">
+    <input
+            id="locationInput"
+            type="text"
+            placeholder="e.g., Golden Gate Bridge"
+            class="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+    <button
+            id="submitBtn"
+            class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+    >
+      Search
+    </button>
+  </div>
+</div>
+
+<!-- Results Section -->
+<div id="results" class="w-full max-w-4xl">
+  <!-- Location Heading -->
+  <h1 id="locationName" class="text-3xl font-bold text-gray-800 mb-6 hidden"></h1>
+
+  <!-- Weather Card -->
+  <div id="weatherCard" class="bg-white rounded-lg shadow-lg p-6 mb-6 hidden">
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">Weather</h2>
+    <div class="flex items-center space-x-4">
+      <i id="weatherIcon" class="fas fa-sun text-4xl text-yellow-500"></i>
+      <div>
+        <p class="text-lg"><span class="font-semibold">Condition:</span> <span id="weatherDesc"></span></p>
+        <p class="text-lg"><span class="font-semibold">Temperature:</span> <span id="currentTemp"></span>°F</p>
+        <p class="text-lg"><span class="font-semibold">Feels Like:</span> <span id="feelsLike"></span>°F</p>
+        <p class="text-lg"><span class="font-semibold">Humidity:</span> <span id="humidity"></span>%</p>
+        <p class="text-lg"><span class="font-semibold">Wind:</span> <span id="windSpeed"></span> mph</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Restaurants Section -->
+  <div id="restaurantsSection" class="hidden">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4">Nearby Restaurants</h2>
+    <div id="restaurants" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+  </div>
+</div>
+
+<script></script>
+</body>
+</html>
