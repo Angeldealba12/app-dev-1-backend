@@ -21,8 +21,12 @@ app.use("/api/todos", todosRouter);
 const planetsRouter = require("../routes/planets");
 app.use("/api/planets", planetsRouter);
 
+const moviesRouter = require('../routes/movies');
+app.use('/api/movies', moviesRouter);
+
 const cityExplorerRouter = require("../routes/cityExplorer");
 app.use("/api/cityExplorer", cityExplorerRouter);
+
 
 app.use("*", fileNotFound);
 app.use(errorHandler);
