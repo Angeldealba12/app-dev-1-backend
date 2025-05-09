@@ -12,7 +12,7 @@
 <!-- Form Section -->
 <div class="w-full max-w-md mb-8">
   <h2 class="text-2xl font-bold text-gray-800 mb-4">Enter Location</h2>
-  <form id="locationForm" class="flex space-x-2">
+  <div class="flex space-x-2">
     <input
             id="locationInput"
             type="text"
@@ -20,25 +20,27 @@
             class="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
     >
     <button
+            id="submitBtn"
             class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
     >
       Search
     </button>
-  </form>
+  </div>
 </div>
 
 <!-- Results Section -->
-<div id="results" class="w-full max-w-4xl hidden">
-  <h1 id="locationName" class="text-3xl font-bold text-gray-800 mb-6"></h1>
+<div id="results" class="w-full max-w-4xl">
+  <!-- Location Heading -->
+  <h1 id="locationName" class="text-3xl font-bold text-gray-800 mb-6 hidden"></h1>
 
-  <div class="grid grid-cols-3 gap-4 mb-6">
+  <div class="grid grid-cols-3 gap-4">
     <!-- Map -->
     <div id="mapCard" class="col-span-2">
       <div id="map" class="h-96"></div>
     </div>
 
     <!-- Weather Card -->
-    <div id="weatherCard">
+    <div id="weatherCard" class="hidden">
       <h2 class="text-2xl font-bold text-gray-800 mb-4">Current Weather</h2>
       <div class="flex items-center space-x-4 bg-white rounded-lg shadow-lg p-6 mb-6 ">
         <div>
@@ -62,61 +64,55 @@
     </div>
   </div>
 
-  <div id="restaurantsSection">
+  <!-- Restaurants Section -->
+  <div id="restaurantsSection" class="hidden">
     <h2 class="text-2xl font-bold text-gray-800 mb-4">Nearby Restaurants</h2>
-    <div id="restaurantsDiv" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6"></div>
+    <div id="restaurants" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
   </div>
-
-
-
-
 </div>
-
-
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
   let apiUrl = '';
   if(location.protocol === 'https:') {
-    apiUrl = 'https://app-dev-1-backend.vercel.app/api/cityExplorer';
+    apiUrl = 'https://nodejs25.vercel.app/api/cityExplorer/';
   } else {
     apiUrl = 'http://localhost:5000/api/cityExplorer/'
   }
+  const submitBtn = document.getElementById('submitBtn');
   const locationInput = document.getElementById('locationInput');
-  const locationForm = document.getElementById('locationForm');
   const results = document.getElementById('results');
   const locationName = document.getElementById('locationName');
   const mapCard = document.getElementById('mapCard');
+  const weatherCard = document.getElementById('weatherCard');
+  // const weatherIcon = document.getElementById('weatherIcon');
   const weatherDesc = document.getElementById('weatherDesc');
   const currentTemp = document.getElementById('currentTemp');
   const feelsLike = document.getElementById('feelsLike');
-  const humidityTxt = document.getElementById('humidity');
+  const humidity = document.getElementById('humidity');
   const windSpeed = document.getElementById('windSpeed');
-  const restaurantsDiv = document.getElementById('restaurantsDiv');
+  const restaurantsSection = document.getElementById('restaurantsSection');
+  const restaurants = document.getElementById('restaurants');
 
+  submitBtn.addEventListener('click', async () => {
+    const query = locationInput.value.trim();
+    if (!query) return;
 
-  locationForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    results.classList.add('hidden');
-    const locationFromUser = locationInput.value.trim();
-    if(!locationFromUser) {
-      results.innerHTML = '<p class="text-red-500">Location is required.</p>';
-      results.classList.remove('hidden');
-      return; // If the location is empty, don't continue
-    }
     try {
+      // Replace with your Express server endpoint
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({location: locationFromUser}),
+        body: JSON.stringify({ location: query }),
       });
       const data = await response.json();
-      // console.log(data.location);
-      const {lat, lon, display_name} = data.location;
 
-      // Display Location Name
+      // Display Location
+      const {lat, lon, display_name} = data.location;
       const displayName = display_name.split(',');
       const keepIndexes = new Set([0, displayName.length - 3, displayName.length - 1]);
       const result = displayName.filter((_, index) => keepIndexes.has(index));
       locationName.textContent = result.join(',');
+      locationName.classList.remove('hidden');
 
       // Display Map
       mapCard.innerHTML = '<div id="map" class="h-96"></div>';
@@ -124,45 +120,61 @@
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
       }).addTo(map);
-      // Adjust map to proper location
       L.marker([lat, lon]).addTo(map);
       map.setView([lat, lon], 14);
+      // mapCard.classList.remove('hidden');
 
       // Display Weather
-      const {weather, current_temp, feels_like, humidity, wind_speed} = data.weather;
-      weatherDesc.textContent = weather;
-      currentTemp.textContent = current_temp;
-      feelsLike.textContent = feels_like;
-      humidityTxt.textContent = humidity;
-      windSpeed.textContent = wind_speed;
+      // weatherIcon.className = `fas ${data.weather.weatherName.toLowerCase() === 'clear' ? 'fa-sun' : 'fa-cloud'} text-4xl text-yellow-500`;
+      weatherDesc.textContent = data.weather.weather;
+      currentTemp.textContent = data.weather.current_temp;
+      feelsLike.textContent = data.weather.feels_like;
+      humidity.textContent = data.weather.humidity;
+      windSpeed.textContent = data.weather.wind_speed;
+      weatherCard.classList.remove('hidden');
 
-      // Display Nearby Restaurants
-      restaurantsDiv.innerHTML = '';
-      const restaurants = data.restaurants;
-      restaurants.forEach((restaurant) => {
+      // Display Restaurants
+      restaurants.innerHTML = '';
+      data.restaurants.forEach(restaurant => {
+        const ratingStars = getStarIcons(restaurant.rating);
         const card = `
-                <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-                    <img src="${restaurant.image_url}" alt="${restaurant.name}"
-                    class="w-full h-48 object-cover">
-                    <div class="p-4">
-                        <h3 class="text-lg font-semibold text-gray-800">${restaurant.name}</h3>
-                        <p class="text-gray-600">${restaurant.price || 'N/A'}</p>
-                        <p class="text-gray-600">${restaurant.address}</p>
-                        <p class="text-gray-600">${restaurant.city}, ${restaurant.state} ${restaurant.zip}</p>
-                        <p class="text-gray-600">${restaurant.phone}</p>
-                        <a href="${restaurant.url}" target="_blank" class="text-blue-500 hover:underline">Visit Website</a>
-                    </div>
-                </div>
-            `;
-        restaurantsDiv.insertAdjacentHTML('beforeend', card);
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+              <img src="${restaurant.image_url}" alt="${restaurant.name}" class="w-full h-48 object-cover">
+              <div class="p-4">
+                <h3 class="text-lg font-semibold text-gray-800">${restaurant.name}</h3>
+                <div class="flex items-center my-2">${ratingStars}</div>
+                <p class="text-gray-600">${restaurant.price || 'N/A'}</p>
+                <p class="text-gray-600">${restaurant.address}</p>
+                <p class="text-gray-600">${restaurant.city}, ${restaurant.state} ${restaurant.zip}</p>
+                <p class="text-gray-600">${restaurant.phone}</p>
+                <a href="${restaurant.url}" target="_blank" class="text-blue-500 hover:underline">Visit Website</a>
+              </div>
+            </div>
+          `;
+        restaurants.insertAdjacentHTML('beforeend', card);
       });
-
+      restaurantsSection.classList.remove('hidden');
     } catch (error) {
-      console.error(error);
-      results.innerHTML = '<p class="text-red-500">Error fetching data. Refresh the browser and try again.</p>';
+      console.error('Error fetching data:', error);
+      results.innerHTML = '<p class="text-red-500">Error fetching data. Please try again.</p>';
     }
-    results.classList.remove('hidden');
   });
+
+  function getStarIcons(rating) {
+    const fullStars = Math.floor(rating);
+    const halfStar = rating % 1 >= 0.5 ? 1 : 0;
+    let stars = '';
+    for (let i = 0; i < fullStars; i++) {
+      stars += '<i class="fas fa-star text-yellow-500"></i>';
+    }
+    if (halfStar) {
+      stars += '<i class="fas fa-star-half-alt text-yellow-500"></i>';
+    }
+    for (let i = fullStars + halfStar; i < 5; i++) {
+      stars += '<i class="far fa-star text-yellow-500"></i>';
+    }
+    return stars;
+  }
 </script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </body>

@@ -21,22 +21,22 @@ async function getPlanets (req, res) {
 }
 
 async function addPlanet(req, res) {
+    const { name, orderFromSun, hasRings } = req.body;
+
+    if (!name || typeof orderFromSun !== 'number' || typeof hasRings !== 'boolean') {
+        return res.status(400).json({ success: false, message: "Invalid input" });
+    }
+
     try {
-        const result = await validatePlanetInput(req.body);
-
-        // Validate user input before continuing
-        if (!result.valid) {
-            return res.status(400).json({success: false, message: result.error});
-        }
-
-        const planet = new Planets(result.data);
-        const savedPlanet = await planet.save();
-        res.json({success: true, data: savedPlanet});
-    } catch(error) {
-        console.error(error);
-        return res.status(500).json({success: false, error: "Unknown error occurred"});
+        const newPlanet = new Planets({ name, orderFromSun, hasRings });
+        const savedPlanet = await newPlanet.save();
+        res.status(201).json({ success: true, data: savedPlanet });
+    } catch (error) {
+        console.error("Error saving planet:", error);
+        res.status(500).json({ success: false, message: "Error saving planet to database" });
     }
 }
+
 
 async function updatePlanet (req, res) {
     const id = req.params.id;

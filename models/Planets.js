@@ -1,11 +1,10 @@
 const mongoose = require('mongoose');
+const conn = mongoose.createConnection(process.env.MONGODB_URI_GUIDES); // Update if using a different URI
 
-const conn = mongoose.createConnection(process.env.MONGODB_URI_GUIDES);
-
-const schema = new mongoose.Schema({
-    name: 'string',
-    orderFromSun: 'number',
-    hasRings: 'boolean',
+const planetSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    orderFromSun: { type: Number, required: true },
+    hasRings: { type: Boolean, required: true }
 });
 
-module.exports = conn.model('Planets', schema);
+module.exports = conn.model('Planets', planetSchema);

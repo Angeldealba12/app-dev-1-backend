@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Planet Explorer</title>
+    <link rel="stylesheet" href="planets.css" />
+</head>
+<body>
+<div class="container">
+    <h1>🌌 Planet Explorer</h1>
+    <form id="planet-form">
+        <label for="name">Planet name</label>
+        <input type="text" id="name" name="name" required placeholder="e.g., Jupiter" />
+
+        <label for="order">Order from the sun</label>
+        <input type="number" id="order" name="order" required min="1" max="15" />
+
+        <label>
+            <input type="checkbox" id="hasRings" name="hasRings" />
+            Presence of rings
+        </label>
+
+        <button type="submit">Save</button>
+    </form>
+
+    <div id="planet-list">
+        <h2>🪐 Saved Planets</h2>
+        <ul id="planets-display"></ul>
+    </div>
+</div>
+
+<script src="planets.js"></script>
+</body>
+</html>
