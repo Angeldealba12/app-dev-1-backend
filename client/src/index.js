@@ -4,7 +4,7 @@ let apiUrl = '';
 if(location.protocol === 'https:') {
     apiUrl = 'https://app-dev-1-backend.vercel.app/api/todos/';
 } else {
-    apiUrl = 'http://localhost:5000/api/todos/'
+    apiUrl = 'http://localhost:5000/api/todos/';
 }
 
 const itemForm = document.getElementById('item-form');
@@ -25,21 +25,17 @@ function hideBtnSpinner() {
     }, 800);
 }
 
-function showSpinner() {
-
-}
-
 function hideLoadingSpinner() {
     setTimeout(() => {
-        loadSpinner.style.opacity = '0'; // This will hide the spinner
-        loadSpinner.style.transition = 'opacity 0.5s'; // Fade out in half of a second
+        loadSpinner.style.opacity = '0';
+        loadSpinner.style.transition = 'opacity 0.5s';
         setTimeout(() => {
             loadSpinner.style.display = 'none';
-        }, 500); // 500 milliseconds is 0.5 sec, needed to match the opacity fading
-    }, 1000); // 1000 milliseconds is 1 second, add a short delay so the animation isn't so abrupt
+        }, 500);
+    }, 1000);
 }
 
-// Start create button functionality
+// Button and Icon
 function createButton(textColor = 'black', iconName = '', ...classes) {
     const button = document.createElement('button');
     button.className = `btn-link text-${textColor}`;
@@ -50,11 +46,14 @@ function createButton(textColor = 'black', iconName = '', ...classes) {
     }
     return button;
 }
+
 function createIcon(iconName) {
     const icon = document.createElement('i');
     icon.className = `fa-solid fa-${iconName}`;
     return icon;
 }
+
+// Add Item to DOM
 function createListItem(item) {
     let listItem = document.createElement('li');
     listItem.appendChild(document.createTextNode(item[0]));
@@ -63,37 +62,45 @@ function createListItem(item) {
     listItem.appendChild(button);
     itemList.appendChild(listItem);
 }
-// End create button functionality
 
-// Start localStorage functionality
+// Load from DB
 function getItemsFromStorage() {
     let listItemsArr = [];
     fetch(apiUrl, {
         method: 'GET'
-    }).then(res => res.json())
+    })
+        .then(res => res.json())
         .then(json => {
             const todos = json.data;
             todos.forEach(todo => {
-                const title = todo.title;
-                const id = todo._id;
-                listItemsArr.push([title, id]);
-            })
+                listItemsArr.push([todo.title, todo._id]);
+            });
         })
-        .then(function() {
-            // listItemsArr is a Two-dimensional array
-            // item is an array
+        .then(() => {
             listItemsArr.forEach(item => {
                 createListItem(item);
             });
         })
-        .then(function() {
+        .then(() => {
             hideLoadingSpinner();
             hideBtnSpinner();
         });
 }
 
+// Add item to DB + DOM
 function storeListItem(itemName) {
     if (itemName !== "") {
+        // ✅ Prevent duplicate
+        const existingItems = document.querySelectorAll('#item-list li');
+        const lowerCaseNew = itemName.trim().toLowerCase();
+        for (let item of existingItems) {
+            const text = item.childNodes[0]?.textContent?.trim().toLowerCase();
+            if (text === lowerCaseNew) {
+                alert("This item already exists!");
+                return;
+            }
+        }
+
         fetch(apiUrl, {
             method: 'POST',
             headers: {
@@ -121,56 +128,39 @@ function storeListItem(itemName) {
     }
 }
 
-
 function setUp() {
     itemList.innerHTML = '';
     getItemsFromStorage();
 }
 
-function clearStorage() {
-    localStorage.removeItem('items');
-}
-// End localStorage functionality
 
-// Start Update/Delete functionality
 function updateItem(item) {
-    // Step 1: place the item's text in the form's input field
     itemInput.value = item.textContent;
-    // Step 2: Change the Add button to an Update button
     itemFormBtn.innerHTML = '<i class="fa-solid fa-pen"></i> Update Item';
     itemFormBtn.style.backgroundColor = '#228B22';
-    // Step 3: Change the style of all buttons except the one that was clicked
     itemList.querySelectorAll('li').forEach(i => i.classList.remove('edit-mode'));
     item.classList.add('edit-mode');
 }
+
 function inEditMode() {
-    let editMode = false;
-    const listItems = itemList.querySelectorAll('li');
-    for (let i = 0; i < listItems.length; i++) {
-        if(listItems[i].classList.contains('edit-mode')) {
-            editMode = true;
-            break;
-        }
-    }
-    return editMode;
+    return [...itemList.querySelectorAll('li')].some(i => i.classList.contains('edit-mode'));
 }
+
 function updateListItem(itemName) {
     const listItems = itemList.querySelectorAll('li');
-    for (let i = 0; i < listItems.length; i++) {
-        let currentItem = listItems[i];
-        if(currentItem.classList.contains('edit-mode')) {
+    for (let currentItem of listItems) {
+        if (currentItem.classList.contains('edit-mode')) {
             const id = currentItem.getAttribute('data-id');
-            // Todo: validate the id
-            const toDo = {_id: id, title: itemName, userId: 1, completed: false};
+            const toDo = { _id: id, title: itemName, userId: 1, completed: false };
+
             fetch(apiUrl + id, {
                 method: 'PUT',
                 body: JSON.stringify(toDo),
-                headers: {'Content-Type': 'application/json; charset=UTF-8'}
-            }).then(res => {
-                return res.json();
+                headers: { 'Content-Type': 'application/json; charset=UTF-8' }
             })
+                .then(res => res.json())
                 .then(json => {
-                    if(json.success) {
+                    if (json.success) {
                         currentItem.textContent = "";
                         currentItem.appendChild(document.createTextNode(itemName));
                         const button = createButton('red', 'circle-xmark', 'remove-item');
@@ -178,73 +168,97 @@ function updateListItem(itemName) {
                         turnOffEdit(currentItem);
                     }
                 })
-                .then(function() {
-                    hideBtnSpinner();
-                });
+                .finally(() => hideBtnSpinner());
+
             break;
         }
     }
 }
+
 function turnOffEdit(item) {
-    // Step 1: remove the text in the form's input field
     itemInput.value = "";
-    // Step 2: Change the Update button to an Add button
     itemFormBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Add Item';
     itemFormBtn.style.backgroundColor = '#333';
-    // Step 3: Change the style of all buttons except the one that was clicked
     item.classList.remove('edit-mode');
 }
 
-// End Update/Delete functionality
-
-// Start Event Listeners
+// === EVENT LISTENERS ===
 window.addEventListener('DOMContentLoaded', setUp);
+
 itemForm.addEventListener('submit', (event) => {
     event.preventDefault();
     showBtnSpinner();
-    let editMode = inEditMode();
-    let inputItemValue = itemInput.value;
-    if(inputItemValue !== '') {
-        if (!editMode) {
-            // Adding a new item
+    const inputItemValue = itemInput.value.trim();
+    if (inputItemValue !== '') {
+        if (!inEditMode()) {
             storeListItem(inputItemValue);
-            itemInput.value = '';
         } else {
-            // Edit an existing item
             updateListItem(inputItemValue);
         }
-    }
-})
-itemList.addEventListener('click', function (event) {
-    if (event.target.tagName === 'LI') {
-        // console.log("You clicked the list item");
-        if(event.target.classList.contains('edit-mode')) {
-            // Turn off edit mode
-            turnOffEdit(event.target);
-        } else {
-            // Turn on edit mode
-            updateItem(event.target);
-        }
-    } else if(event.target.parentElement.classList.contains('remove-item')) {
-        // console.log("You clicked the delete button");
-        // This is your homework
-        // Hint: Target the li, which is the parent of the button, which is the parent of the icon
+        itemInput.value = '';
     }
 });
+
+itemList.addEventListener('click', function (event) {
+    if (event.target.tagName === 'LI') {
+        if (event.target.classList.contains('edit-mode')) {
+            turnOffEdit(event.target);
+        } else {
+            updateItem(event.target);
+        }
+    } else if (event.target.parentElement.classList.contains('remove-item')) {
+        const li = event.target.closest('li');
+        const id = li.getAttribute('data-id');
+
+        fetch(apiUrl + id, {
+            method: 'DELETE'
+        })
+            .then(res => res.json())
+            .then(json => {
+                if (json.success) {
+                    li.remove();
+                } else {
+                    alert("Failed to delete item.");
+                }
+            })
+            .catch(err => {
+                console.error("Delete error:", err);
+            });
+    }
+});
+
+
 clearBtn.addEventListener('click', function(event) {
     let confirmClear = confirm('Are you sure you want to clear the list?');
     if (confirmClear) {
-        itemList.innerHTML = '';
-        clearStorage();
+        fetch(apiUrl, {
+            method: 'DELETE'
+        })
+            .then(res => res.json())
+            .then(json => {
+                if (json.success) {
+                    itemList.innerHTML = '';
+                } else {
+                    alert("Failed to clear items.");
+                }
+            })
+            .catch(err => {
+                console.error("Clear all error:", err);
+                alert("Something went wrong while clearing.");
+            });
     }
 });
-// These events didn't work: change, keydown, keypress
-filter.addEventListener('input', (event) => {
-    let value = event.target.value;
-    const listItemsArr = getItemsFromStorage();
-    const filteredItems = listItemsArr.filter(item =>  item.toLowerCase().includes(value.toLowerCase()));
-    itemList.innerHTML = '';
-    filteredItems.forEach(item => {createListItem(item)});
-});
-// End Event Listeners
 
+// 🔍 FILTER
+filter.addEventListener('input', (event) => {
+    let value = event.target.value.toLowerCase();
+    const listItems = document.querySelectorAll('#item-list li');
+    listItems.forEach(item => {
+        const text = item.childNodes[0]?.textContent?.toLowerCase();
+        if (text.includes(value)) {
+            item.style.display = '';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+});
