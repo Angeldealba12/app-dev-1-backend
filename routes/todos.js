@@ -14,6 +14,8 @@ router.post('/', addTodo);
 router.put('/:id', updateSingleTodo);
 // Delete a single to-do
 router.delete('/:id', deleteSingleTodo);
+
+
 // Route handlers
 async function getTodos (req, res) {
     try {
@@ -35,23 +37,29 @@ async function getSingleTodo(req, res) {
     }
     res.json({ success: true, data: todo});
 }
+
+
 async function addTodo(req, res) {
-    const title = req.body.title;
-    const completed = false;
-    const userId = 1; // Change based on user logged in
-    // Validate user input before continuing
-    if(title) {
-        const todo = new Todos({
-            "title": title,
-            "completed": completed,
-            "userId": userId,
+    const { title } = req.body;
+
+    if (!title || title.trim() === "") {
+        return res.status(400).json({ success: false, message: "Title is required." });
+    }
+
+    try {
+        const newTodo = await Todos.create({
+            title: title.trim(),
+            userId: 1,
+            completed: false
         });
-        const savedTodo = await todo.save();
-        res.json({success: true, data: savedTodo});
-    } else {
-        res.status(400).json({ success: false, message: 'Title is required' });
+
+        res.status(201).json({ success: true, data: newTodo });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Failed to create todo." });
     }
 }
+
 
 async function updateSingleTodo(req, res) {
     const id = req.params.id;

@@ -64,15 +64,6 @@ async function updatePlanet (req, res) {
 }
 
 async function validatePlanetInput(input, existingPlanetId = null) {
-    // input is expected to look like this:
-    // {
-    //     "_id": ObjectId('ff30d2a3e781873fcb660'),
-    //     "name": "Jupiter,
-    //     "orderFromSun": 5,
-    //     "hasRings": true,
-    //     "mainAtmosphere": ["H2", "He", "CH4"],
-    //     surfaceTemperatureC: {min: 0, max: 1, mean: 0.5}
-    // }
     let {name, orderFromSun, hasRings} = input; // This is called deconstruction
 
     // Sanitize the name
@@ -104,10 +95,8 @@ async function validatePlanetInput(input, existingPlanetId = null) {
         hasRings = false;
     }
     if(typeof hasRings === 'string') {
-        hasRings = hasRings.trim().toLowerCase() === 'true' ? true : false;
+        hasRings = hasRings.trim().toLowerCase() === 'true';
     }
-
-
 
     return { valid: true, data: {name, orderFromSun, hasRings}};
 }

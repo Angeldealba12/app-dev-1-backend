@@ -2,7 +2,7 @@ import './css/style.css';
 
 let apiUrl = '';
 if(location.protocol === 'https:') {
-    apiUrl = 'https://nodejs25.vercel.app/api/todos/';
+    apiUrl = 'https://app-dev-1-backend.vercel.app/api/todos/';
 } else {
     apiUrl = 'http://localhost:5000/api/todos/'
 }
@@ -93,30 +93,40 @@ function getItemsFromStorage() {
 }
 
 function storeListItem(itemName) {
-    if(itemName !== "") {
+    if (itemName !== "") {
         fetch(apiUrl, {
             method: 'POST',
-            body: JSON.stringify({title: itemName}),
-            headers: {'Content-Type': 'application/json; charset=UTF-8'}
-        }).then(res => {
-            return res.json();
+            headers: {
+                'Content-Type': 'application/json; charset=UTF-8'
+            },
+            body: JSON.stringify({ title: itemName })
         })
+            .then(res => res.json())
             .then(json => {
-                if(json.success) {
-                    // Courtesy of Edward
+                console.log("Added Todo:", json);
+                if (json.success) {
                     const newTodo = json.data;
                     createListItem([newTodo.title, newTodo._id]);
+                } else {
+                    alert(json.message || "Failed to add todo.");
                 }
             })
-            .then(function() {
+            .catch(err => {
+                console.error("Error while adding todo:", err);
+                alert("Something went wrong.");
+            })
+            .finally(() => {
                 hideBtnSpinner();
             });
     }
 }
+
+
 function setUp() {
     itemList.innerHTML = '';
     getItemsFromStorage();
 }
+
 function clearStorage() {
     localStorage.removeItem('items');
 }
@@ -237,21 +247,4 @@ filter.addEventListener('input', (event) => {
     filteredItems.forEach(item => {createListItem(item)});
 });
 // End Event Listeners
-
-// ****************************************
-// *      Start Code from February 27     *
-// ****************************************
-// listItems[0].style.backgroundColor = 'yellow';
-// listItems[1].style.backgroundColor = 'orange';
-// listItems.forEach((el) => el.style.color = 'red');
-//
-// const mainHeading = document.getElementById('main-heading');
-// mainHeading.textContent = "Marc's Shopping List"
-// mainHeading.style.color = 'yellow';
-// mainHeading.style.backgroundColor = 'dodgerblue';
-// mainHeading.style.padding = '0 20px';
-// mainHeading.style.borderRadius = '20px';
-// ****************************************
-// *      End Code from February 27       *
-// ****************************************
 
