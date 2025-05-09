@@ -96,6 +96,16 @@ async function deleteSingleTodo(req, res) {
     }
 }
 
+// Delete ALL todos
+router.delete('/', async (req, res) => {
+    try {
+        await Todos.deleteMany({});
+        res.json({ success: true, message: "All todos deleted" });
+    } catch (error) {
+        console.error("Clear all error:", error);
+        res.status(500).json({ success: false, message: "Failed to clear todos" });
+    }
+});
 
 function isValidId(id) {
     if (
