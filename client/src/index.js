@@ -1,11 +1,6 @@
 import './css/style.css';
 
-let apiUrl = '';
-if(location.protocol === 'https:') {
-    apiUrl = 'https://app-dev-1-backend.vercel.app/api/todos/';
-} else {
-    apiUrl = 'http://localhost:5000/api/todos/';
-}
+const apiUrl = 'https://app-dev-1-backend.onrender.com/api/todos/';
 
 const itemForm = document.getElementById('item-form');
 const itemFormBtn = document.querySelector('#item-form button');
