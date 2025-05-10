@@ -9,6 +9,7 @@ router.post('/', addPlanet);
 router.put('/:id', updatePlanet);
 router.delete('/:id', deletePlanet);
 router.delete('/', clearAllPlanets);
+router.get('/:id', getPlanetById);
 
 // Route handlers
 async function getPlanets(req, res) {
@@ -91,6 +92,27 @@ async function clearAllPlanets(req, res) {
         res.status(500).json({ success: false, message: 'Failed to clear planets' });
     }
 }
+
+async function getPlanetById(req, res) {
+    const id = req.params.id;
+
+    if (!isValidId(id)) {
+        return res.status(400).json({ success: false, message: 'Invalid ID format' });
+    }
+
+    try {
+        const planet = await Planets.findById(id);
+        if (!planet) {
+            return res.status(404).json({ success: false, message: 'Planet not found' });
+        }
+
+        res.json({ success: true, data: planet });
+    } catch (error) {
+        console.error("Error fetching planet:", error);
+        res.status(500).json({ success: false, message: 'Failed to retrieve planet' });
+    }
+}
+
 
 // Validation
 async function validatePlanetInput(input, existingPlanetId = null) {
